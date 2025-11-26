@@ -1,0 +1,207 @@
+#include <bits/stdc++.h>
+using namespace std;
+
+struct Book {
+    int id;
+    string name;
+    string author;
+    bool available;
+};
+
+struct Student {
+    int id;
+    string name;
+    string password;
+    int balance;
+    vector<int> borrowedBooks;
+};
+
+vector<Book> books;
+vector<Student> students;
+
+void pauseScreen() {
+    cout << "\nPress Enter to continue...";
+    cin.ignore(numeric_limits<streamsize>::max(), '\n');
+    cin.get();
+}
+
+void add_book() {
+    Book b;
+    cout << "Enter book ID: ";
+    cin >> b.id;
+    cin.ignore();
+    cout << "Enter book name: ";
+    getline(cin, b.name);
+    cout << "Enter author name: ";
+    getline(cin, b.author);
+    b.available = true;
+    books.push_back(b);
+    cout << "Book added successfully!\n";
+    pauseScreen();
+}
+
+void edit_book() {
+    int id;
+    cout << "Enter book ID to edit: ";
+    cin >> id;
+    cin.ignore();
+    for (auto &b : books) {
+        if (b.id == id) {
+            cout << "Enter new name: ";
+            getline(cin, b.name);
+            cout << "Enter new author: ";
+            getline(cin, b.author);
+            cout << "Book updated successfully!\n";
+            pauseScreen();
+            return;
+        }
+    }
+    cout << "Book not found!\n";
+    pauseScreen();
+}
+
+void view_books() {
+    cout << "\n--- Book List ---\n";
+    for (auto &b : books) {
+        cout << "ID: " << b.id
+             << ", Name: " << b.name
+             << ", Author: " << b.author
+             << ", Status: " << (b.available ? "Available" : "Not Available") << "\n";
+    }
+    pauseScreen();
+}
+
+void view_students() {
+    cout << "\n--- Student List ---\n";
+    for (auto &s : students) {
+        cout << "ID: " << s.id
+             << ", Name: " << s.name
+             << ", Balance: " << s.balance << "\n";
+    }
+    pauseScreen();
+}
+
+void admin_menu() {
+    int choice;
+    do {
+        cout << "\n--- Admin Menu ---\n";
+        cout << "1. Add Book\n2. Edit Book\n3. View Books\n4. View Students\n0. Logout\nEnter choice: ";
+        cin >> choice;
+        cin.ignore();
+        switch (choice) {
+            case 1: add_book(); break;
+            case 2: edit_book(); break;
+            case 3: view_books(); break;
+            case 4: view_students(); break;
+            case 0: cout << "Logging out...\n"; break;
+            default: cout << "Invalid choice!\n";
+        }
+    } while (choice != 0);
+}
+
+void student_menu(Student &s) {
+    int choice;
+    do {
+        cout << "\n--- Student Menu ---\n";
+        cout << "1. View Books\n2. Borrow Book\n3. Return Book\n0. Logout\nEnter choice: ";
+        cin >> choice;
+        cin.ignore();
+        if (choice == 1) {
+            view_books();
+        } else if (choice == 2) {
+            int id;
+            cout << "Enter book ID to borrow: ";
+            cin >> id;
+            for (auto &b : books) {
+                if (b.id == id && b.available) {
+                    b.available = false;
+                    s.borrowedBooks.push_back(id);
+                    cout << "Book borrowed successfully!\n";
+                    pauseScreen();
+                    goto next;
+                }
+            }
+            cout << "Book not available!\n";
+            pauseScreen();
+        } else if (choice == 3) {
+            int id;
+            cout << "Enter book ID to return: ";
+            cin >> id;
+            for (auto &b : books) {
+                if (b.id == id) {
+                    b.available = true;
+                    s.borrowedBooks.erase(remove(s.borrowedBooks.begin(), s.borrowedBooks.end(), id), s.borrowedBooks.end());
+                    cout << "Book returned successfully!\n";
+                    pauseScreen();
+                    goto next;
+                }
+            }
+            cout << "Book not found!\n";
+            pauseScreen();
+        } else if (choice == 0) {
+            cout << "Logging out...\n";
+        } else {
+            cout << "Invalid choice!\n";
+            pauseScreen();
+        }
+        next: ;
+    } while (choice != 0);
+}
+
+bool admin_login() {
+    string id, pass;
+    cout << "Enter admin ID: ";
+    cin >> id;
+    cout << "Enter password: ";
+    cin >> pass;
+    if (id == "admin" && pass == "1234") return true;
+    cout << "Invalid admin credentials!\n";
+    pauseScreen();
+    return false;
+}
+
+Student* student_login() {
+    int id;
+    string pass;
+    cout << "Enter student ID: ";
+    cin >> id;
+    cout << "Enter password: ";
+    cin >> pass;
+    for (auto &s : students) {
+        if (s.id == id && s.password == pass) {
+            return &s;
+        }
+    }
+    cout << "Invalid student credentials!\n";
+    pauseScreen();
+    return nullptr;
+}
+
+int main() {
+    // Sample student for testing
+    Student s1 = {101, "Amrendra Kumar", "1234", 0};
+    students.push_back(s1);
+
+    int choice;
+    do {
+        cout << "\n--- Library Management ---\n";
+        cout << "1. Admin Login\n2. Student Login\n3. Exit\nEnter choice: ";
+        cin >> choice;
+        cin.ignore();
+        if (choice == 1) {
+            if (admin_login()) admin_menu();
+        } else if (choice == 2) {
+            Student *s = student_login();
+            if (s) student_menu(*s);
+        } else if (choice == 3) {
+            cout << "Exiting program...\n";
+        } else {
+            cout << "Invalid choice!\n";
+        }
+    } while (choice != 3);
+
+    return 0;
+}
+
+
+
